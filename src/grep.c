@@ -21,6 +21,7 @@
 #include <config.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <uchar.h>
 #include <wchar.h>
 #include <inttypes.h>
 #include <stdarg.h>
@@ -2261,12 +2262,12 @@ setup_ok_fold (void)
         continue;
 
       int ok = 1;
-      wchar_t folded[CASE_FOLDED_BUFSIZE];
+      char32_t folded[CASE_FOLDED_BUFSIZE];
       for (int n = case_folded_counterparts (wi, folded); 0 <= --n; )
         {
           char buf[MB_LEN_MAX];
           mbstate_t s = { 0 };
-          if (wcrtomb (buf, folded[n], &s) != 1)
+          if (c32rtomb (buf, folded[n], &s) != 1)
             {
               ok = -1;
               break;
@@ -2291,8 +2292,8 @@ fgrep_icase_charlen (char const *pat, idx_t patlen, mbstate_t *mbs)
   if (localeinfo.sbctowc[pat0] != WEOF)
     return ok_fold[pat0];
 
-  wchar_t wc;
-  size_t wn = mbrtowc (&wc, pat, patlen, mbs);
+  char32_t wc;
+  size_t wn = mbrtoc32 (&wc, pat, patlen, mbs);
 
   /* If PAT starts with an encoding error, Fcompile does not work.  */
   if (MB_LEN_MAX < wn)
@@ -2301,7 +2302,7 @@ fgrep_icase_charlen (char const *pat, idx_t patlen, mbstate_t *mbs)
   /* PAT starts with a multibyte character.  Fcompile works if the
      character has no case folded counterparts and toupper translates
      none of its encoding's bytes.  */
-  wchar_t folded[CASE_FOLDED_BUFSIZE];
+  char32_t folded[CASE_FOLDED_BUFSIZE];
   if (case_folded_counterparts (wc, folded))
     return -1;
   for (idx_t i = wn; 0 < --i; )
