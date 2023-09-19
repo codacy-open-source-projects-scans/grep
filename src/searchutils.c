@@ -45,7 +45,7 @@ wordinit (void)
 kwset_t
 kwsinit (bool mb_trans)
 {
-  char *trans = NULL;
+  char *trans = nullptr;
 
   if (match_icase && (MB_CUR_MAX == 1 || mb_trans))
     {
@@ -115,7 +115,7 @@ mb_goback (char const **mb_start, idx_t *mbclen, char const *cur,
 
               if (long_enough)
                 {
-                  mbstate_t mbs = { 0 };
+                  mbstate_t mbs; mbszero (&mbs);
                   ptrdiff_t clen = imbrlen (cur - i, end - (cur - i), &mbs);
                   if (0 <= clen)
                     {
@@ -131,7 +131,7 @@ mb_goback (char const **mb_start, idx_t *mbclen, char const *cur,
     {
       /* In non-UTF-8 encodings, to find character boundaries one must
          in general scan forward from the start of the buffer.  */
-      mbstate_t mbs = { 0 };
+      mbstate_t mbs; mbszero (&mbs);
       ptrdiff_t clen;
 
       do
@@ -164,27 +164,27 @@ mb_goback (char const **mb_start, idx_t *mbclen, char const *cur,
 static idx_t
 wordchars_count (char const *buf, char const *end, bool countall)
 {
-  idx_t n = 0;
-  mbstate_t mbs = { 0 };
-  while (n < end - buf)
+  mbstate_t mbs; mbszero (&mbs);
+  char const *p = buf;
+  while (p < end)
     {
-      unsigned char b = buf[n];
+      unsigned char b = *p;
       if (sbwordchar[b])
-        n++;
+        p++;
       else if (localeinfo.sbclen[b] != -2)
         break;
       else
         {
           char32_t wc = 0;
-          size_t wcbytes = mbrtoc32 (&wc, buf + n, end - buf - n, &mbs);
+          size_t wcbytes = mbrtoc32 (&wc, p, end - p, &mbs);
           if (!wordchar (wc))
             break;
-          n += wcbytes + !wcbytes;
+          p += wcbytes + !wcbytes;
         }
       if (!countall)
         break;
     }
-  return n;
+  return p - buf;
 }
 
 /* Examine the start of BUF for the longest prefix containing just
@@ -216,6 +216,6 @@ wordchar_prev (char const *buf, char const *cur, char const *end)
   if (! localeinfo.multibyte || localeinfo.using_utf8 & ~(b >> 7))
     return sbwordchar[b];
   char const *p = buf;
-  cur -= mb_goback (&p, NULL, cur, end);
+  cur -= mb_goback (&p, nullptr, cur, end);
   return wordchar_next (cur, end);
 }
