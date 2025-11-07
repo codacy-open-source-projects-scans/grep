@@ -1,5 +1,5 @@
 ## Process this file with automake to create Makefile.in
-# Copyright 1997-1998, 2005-2024 Free Software Foundation, Inc.
+# Copyright 1997-1998, 2005-2025 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,13 +28,12 @@ grep_SOURCES =					\
   die.h						\
   grep.c					\
   kwsearch.c					\
-  kwset.c					\
   searchutils.c
 if USE_PCRE
 grep_SOURCES += pcresearch.c
 endif
 
-noinst_HEADERS = grep.h kwset.h search.h system.h
+noinst_HEADERS = grep.h search.h system.h
 
 # Sometimes, the expansion of $(LIBINTL) includes -lc which may
 # include modules defining variables like 'optind', so libgreputils.a

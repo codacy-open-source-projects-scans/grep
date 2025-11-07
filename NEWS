@@ -2,6 +2,9 @@ GNU grep NEWS                                    -*- outline -*-
 
 * Noteworthy changes in release ?.? (????-??-??) [?]
 
+
+* Noteworthy changes in release 3.12 (2025-04-10) [stable]
+
 ** Bug fixes
 
   Searching a directory with at least 100,000 entries no longer fails
@@ -16,8 +19,11 @@ GNU grep NEWS                                    -*- outline -*-
 
 ** Changes in behavior
 
-  On Windows platforms and on AIX in 32-bit mode, grep now supports
-  Unicode characters outside the Basic Multilingual Plane.
+  The --unix-byte-offsets (-u) option is gone. In grep-3.7 (2021-08-14)
+  it became a warning-only no-op. Before then, it was a Windows-only no-op.
+
+  On Windows platforms and on AIX in 32-bit mode, grep in some cases
+  now supports Unicode characters outside the Basic Multilingual Plane.
 
 
 * Noteworthy changes in release 3.11 (2023-05-13) [stable]
@@ -1405,7 +1411,7 @@ necessary to track the evolution of the regex package, and since
 I was changing it anyway I decided to do a general cleanup.
 
 ========================================================================
-Copyright (C) 1992, 1997-2002, 2004-2024 Free Software Foundation, Inc.
+Copyright (C) 1992, 1997-2002, 2004-2025 Free Software Foundation, Inc.
 
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright

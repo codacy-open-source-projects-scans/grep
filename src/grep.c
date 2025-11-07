@@ -1,5 +1,5 @@
 /* grep.c - main driver file for grep.
-   Copyright (C) 1992, 1997-2002, 2004-2024 Free Software Foundation, Inc.
+   Copyright (C) 1992, 1997-2002, 2004-2025 Free Software Foundation, Inc.
 
    This program is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -436,7 +436,11 @@ static const struct color_cap color_dict[] =
     { nullptr, nullptr,            nullptr }
   };
 
-/* Saved errno value from failed output functions on stdout.  */
+/* Saved errno value from failed output functions on stdout.
+   prline polls this to decide whether to die.
+   Setting it to nonzero just before exiting can prevent clean_up_stdout
+   from misbehaving on a buggy OS where 'close (STDOUT_FILENO)' fails
+   with EACCES.  */
 static int stdout_errno;
 
 static void
@@ -548,7 +552,6 @@ static struct option const long_options[] =
   {"silent", no_argument, nullptr, 'q'},
   {"text", no_argument, nullptr, 'a'},
   {"binary", no_argument, nullptr, 'U'},
-  {"unix-byte-offsets", no_argument, nullptr, 'u'},
   {"version", no_argument, nullptr, 'V'},
   {"with-filename", no_argument, nullptr, 'H'},
   {"word-regexp", no_argument, nullptr, 'w'},
@@ -1484,13 +1487,18 @@ grepbuf (char *beg, char const *lim)
         break;
       if (!out_invert || p < b)
         {
+          if (list_files != LISTFILES_NONE)
+            return 1;
           char *prbeg = out_invert ? p : b;
           char *prend = out_invert ? b : endp;
           prtext (prbeg, prend);
           if (!outleft || done_on_match)
             {
               if (exit_on_match)
-                exit (errseen ? exit_failure : EXIT_SUCCESS);
+                {
+                  stdout_errno = -1;
+                  exit (EXIT_SUCCESS);
+                }
               break;
             }
         }
@@ -2057,10 +2065,11 @@ Context control:\n\
   -U, --binary              do not strip CR characters at EOL (MSDOS/Windows)\n\
 \n"));
       printf (_("\
-When FILE is '-', read standard input.  With no FILE, read '.' if\n\
-recursive, '-' otherwise.  With fewer than two FILEs, assume -h.\n\
-Exit status is 0 if any line is selected, 1 otherwise;\n\
-if any error occurs and -q is not given, the exit status is 2.\n"));
+When FILE is '-', read standard input.  If no FILE is given, read standard\n\
+input, but with -r, recursively search the working directory instead.  With\n\
+fewer than two FILEs, assume -h.  Exit status is 0 if any line is selected,\n\
+1 otherwise; if any error occurs and -q is not given, the exit status is 2.\n"
+                ));
       emit_bug_reporting_address ();
     }
   exit (status);
@@ -2490,6 +2499,7 @@ main (int argc, char **argv)
 #endif
 #if defined ENABLE_NLS
   bindtextdomain (PACKAGE, LOCALEDIR);
+  bindtextdomain ("gnulib", GNULIB_LOCALEDIR);
   textdomain (PACKAGE);
 #endif
 
@@ -2566,11 +2576,6 @@ main (int argc, char **argv)
       case 'U':
         if (O_BINARY)
           binary = true;
-        break;
-
-      case 'u':
-        /* Obsolete option; it had no effect; FIXME: remove in 2023  */
-        error (0, 0, _("warning: --unix-byte-offsets (-u) is obsolete"));
         break;
 
       case 'V':
@@ -2696,7 +2701,6 @@ main (int argc, char **argv)
 
       case 'q':
         exit_on_match = true;
-        exit_failure = 0;
         break;
 
       case 'R':
@@ -2897,7 +2901,7 @@ main (int argc, char **argv)
       if (max_count == INTMAX_MAX)
         done_on_match = true;
     }
-  out_quiet = count_matches | done_on_match;
+  out_quiet = count_matches | done_on_match | exit_on_match;
 
   if (out_after < 0)
     out_after = default_context;

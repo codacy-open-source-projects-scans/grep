@@ -1,6 +1,6 @@
 # Process this file with automake to create Makefile.in
 #
-# Copyright 1997-1998, 2005-2024 Free Software Foundation, Inc.
+# Copyright 1997-1998, 2005-2025 Free Software Foundation, Inc.
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -66,13 +66,10 @@ gen-ChangeLog:
 # current locale considers to be equal.
 ASSORT = LC_ALL=C sort
 
-# Extract all lines up to the first one starting with "##".
-prologue = perl -ne '/^\#\#/ and exit; print' $(srcdir)/THANKS.in
-
 THANKS: THANKS.in Makefile.am .mailmap thanks-gen
 	$(AM_V_GEN)rm -f $@-t $@;					\
 	{								\
-	  $(prologue); echo;						\
+	  perl -ne '/^\#\#/ and exit; print' $(srcdir)/THANKS.in; echo;	\
 	  { perl -ne '/^$$/.../^$$/ and !/^$$/ and s/  +/\0/ and print'	\
 	      $(srcdir)/THANKS.in;					\
 	    git log --pretty=format:'%aN%x00%aE'			\

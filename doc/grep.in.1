@@ -2,7 +2,7 @@
 .de dT
 .ds Dt \\$2
 ..
-.dT Time-stamp: "2019-12-29"
+.dT Time-stamp: "2025-03-21"
 .\" Update the above date whenever a change to either this file or
 .\" grep.c's 'usage' function results in a nontrivial change to the man page.
 .\" In Emacs, you can update the date by running 'M-x time-stamp'
@@ -11,8 +11,10 @@
 .
 .TH GREP 1 \*(Dt "GNU grep @VERSION@" "User Commands"
 .
-.if !\w|\*(lq| \{\
-.\" groff an-old.tmac does not seem to be in use, so define lq and rq.
+.ie \n(.g .ds ' \(aq
+.el .ds ' '
+.if !\w@\*(lq@ \{\
+.\" The implementation lacks \*(lq and presumably \*(rq.
 .	ie \n(.g \{\
 .		ds lq \(lq\"
 .		ds rq \(rq\"
@@ -23,115 +25,110 @@
 .	\}
 .\}
 .
-.as la
-.if !\w|\*(la| \{\
+.as mC
+.if !\w@\*(mC@ \{\
 .\" groff an-ext.tmac does not seem to be in use, so define the parts of
-.\" it that are used below.  For a copy of groff an-ext.tmac, please see:
-.\" https://git.savannah.gnu.org/cgit/groff.git/plain/tmac/an-ext.tmac
-.\" --- Start of lines taken from groff an-ext.tmac
+.\" it that are used below, taken from groff 1.23.0.  For a copy, please see:
+.\" https://git.savannah.gnu.org/cgit/groff.git/plain/tmac/an-ext.tmac?id=1.23.0
+.nr mG \n(.g-1
+.\" --- Start of lines taken from groff an-ext.tmac,
+.\" except with "nr mH 14" replaced by "nr mH 0"
+.\" and with mS, SY, YS definitions omitted.
 .
-.\" Check whether we are using grohtml.
-.nr mH 0
-.if \n(.g \
-.  if '\*(.T'html' \
-.    nr mH 1
+.\" Define this to your implementation's constant-width typeface.
+.ds mC CW
+.if n .ds mC R
+.
+.\" Save the automatic hyphenation mode.
+.\"
+.\" In AT&T troff, there was no register exposing the hyphenation mode,
+.\" and no way to save and restore it.  Set `mH` to a reasonable value
+.\" for your implementation and preference.
+.de mY
+.  ie !\\n(.g \
+.    nr mH 0
+.  el \
+.    do nr mH \\n[.hy] \" groff extension register
+..
+.
+.nr mE 0 \" in an example (EX/EE)?
+.
+.\" Prepare link text for mail/web hyperlinks.  `MT` and `UR` call this.
+.de mV
+.  ds m1 \\$1\"
+..
 .
 .
-.\" Map mono-width fonts to standard fonts for groff's TTY device.
-.if n \{\
-.  do ftr CR R
-.  do ftr CI I
-.  do ftr CB B
-.\}
+.\" Emit hyperlink.  The optional argument supplies trailing punctuation
+.\" after link text.  `ME` and `UE` call this.
+.de mQ
+.  mY
+.  nh
+<\\*(m1>\\$1
+.  hy \\n(mH
+..
 .
-.\" groff has glyph entities for angle brackets.
-.ie \n(.g \{\
-.  ds la \(la\"
-.  ds ra \(ra\"
-.\}
-.el \{\
-.  ds la <\"
-.  ds ra >\"
-.  \" groff's man macros control hyphenation with this register.
-.  nr HY 1
-.\}
 .
 .\" Start URL.
+.if \n(.g-\n(mG \{\
 .de UR
-.  ds m1 \\$1\"
-.  nh
-.  if \\n(mH \{\
-.    \" Start diversion in a new environment.
-.    do ev URL-div
-.    do di URL-div
-.  \}
+.  mV \\$1
 ..
+.\}
 .
 .
 .\" End URL.
+.if \n(.g-\n(mG \{\
 .de UE
-.  ie \\n(mH \{\
-.    br
-.    di
-.    ev
-.
-.    \" Has there been one or more input lines for the link text?
-.    ie \\n(dn \{\
-.      do HTML-NS "<a href=""\\*(m1"">"
-.      \" Yes, strip off final newline of diversion and emit it.
-.      do chop URL-div
-.      do URL-div
-\c
-.      do HTML-NS </a>
-.    \}
-.    el \
-.      do HTML-NS "<a href=""\\*(m1"">\\*(m1</a>"
-\&\\$*\"
-.  \}
-.  el \
-\\*(la\\*(m1\\*(ra\\$*\"
-.
-.  hy \\n(HY
+.  mQ \\$1
 ..
+.\}
 .
 .
 .\" Start email address.
+.if \n(.g-\n(mG \{\
 .de MT
-.  ds m1 \\$1\"
-.  nh
-.  if \\n(mH \{\
-.    \" Start diversion in a new environment.
-.    do ev URL-div
-.    do di URL-div
-.  \}
+.  mV \\$1
 ..
+.\}
 .
 .
 .\" End email address.
+.if \n(.g-\n(mG \{\
 .de ME
-.  ie \\n(mH \{\
-.    br
-.    di
-.    ev
-.
-.    \" Has there been one or more input lines for the link text?
-.    ie \\n(dn \{\
-.      do HTML-NS "<a href=""mailto:\\*(m1"">"
-.      \" Yes, strip off final newline of diversion and emit it.
-.      do chop URL-div
-.      do URL-div
-\c
-.      do HTML-NS </a>
-.    \}
-.    el \
-.      do HTML-NS "<a href=""mailto:\\*(m1"">\\*(m1</a>"
-\&\\$*\"
-.  \}
-.  el \
-\\*(la\\*(m1\\*(ra\\$*\"
-.
-.  hy \\n(HY
+.  mQ \\$1
 ..
+.\}
+.
+.
+.\" Start example.
+.if \n(.g-\n(mG \{\
+.de EX
+.  br
+.  if !\\n(mE \{\
+.    nr mF \\n(.f
+.    nr mP \\n(PD
+.    nr PD 1v
+.    nf
+.    ft \\*(mC
+.    nr mE 1
+.  \}
+..
+.\}
+.
+.
+.\" End example.
+.if \n(.g-\n(mG \{\
+.de EE
+.  br
+.  if \\n(mE \{\
+.    ft \\n(mF
+.    nr PD \\n(mP
+.    fi
+.    nr mE 0
+.  \}
+..
+.\}
 .\" --- End of lines taken from groff an-ext.tmac
 .\}
 .
@@ -142,30 +139,33 @@ grep \- print lines that match patterns
 .
 .SH SYNOPSIS
 .B grep
-.RI [ OPTION .\|.\|.]\&
+.RI [ OPTION ].\|.\|.\&
 .I PATTERNS
-.RI [ FILE .\|.\|.]
+.RI [ FILE ].\|.\|.
 .br
 .B grep
-.RI [ OPTION .\|.\|.]\&
+.RI [ OPTION ].\|.\|.\&
 .B \-e
 .I PATTERNS
 \&.\|.\|.\&
-.RI [ FILE .\|.\|.]
+.RI [ FILE ].\|.\|.
 .br
 .B grep
-.RI [ OPTION .\|.\|.]\&
+.RI [ OPTION ].\|.\|.\&
 .B \-f
 .I PATTERN_FILE
 \&.\|.\|.\&
-.RI [ FILE .\|.\|.]
+.RI [ FILE ].\|.\|.
 .
 .SH DESCRIPTION
 .B grep
-searches for
-.I PATTERNS
-in each
+searches for patterns in each
 .IR FILE .
+In the synopsis's first form, which is used if no
+.B \-e
+or
+.B \-f
+options are present, the first operand
 .I PATTERNS
 is one or more patterns separated by newline characters, and
 .B grep
@@ -405,7 +405,7 @@ Display input actually coming from standard input as input coming from file
 This can be useful for commands that transform a file's contents
 before searching,
 e.g.,
-.BR "gzip \-cd foo.gz | grep \-\^\-label=foo \-H 'some pattern'" .
+.BR "gzip \-cd foo.gz | grep \-\^\-label=foo \-H \*'some pattern\*'" .
 See also the
 .B \-H
 option.
@@ -596,7 +596,7 @@ On the other hand, when reading files whose text encodings are
 unknown, it can be helpful to use
 .B \-a
 or to set
-.B LC_ALL='C'
+.B LC_ALL=\*'C\*'
 in the environment, in order to find more matches even if the matches
 are unsafe for direct display.
 .TP
@@ -963,7 +963,7 @@ In basic regular expressions the meta-characters
 .BR | ,
 .BR ( ,
 and
-.BR )
+.B )
 lose their special meaning; instead use the backslashed
 versions
 .BR \e? ,
@@ -1258,7 +1258,7 @@ This man page is maintained only fitfully;
 the full documentation is often more up-to-date.
 .
 .SH COPYRIGHT
-Copyright 1998\(en2000, 2002, 2005\(en2024 Free Software Foundation, Inc.
+Copyright 1998\(en2000, 2002, 2005\(en2025 Free Software Foundation, Inc.
 .PP
 This is free software;
 see the source for copying conditions.
@@ -1310,7 +1310,7 @@ even if only one file name happens to be of the form \*(lq*g*.h\*(rq.
 .PP
 .in +2n
 .EX
-$ \fBgrep\fP \-n \-\^\- 'f.*\e.c$' *g*.h /dev/null
+$ \fBgrep\fP \-n \-\^\- \*'f.*\e.c$\*' *g*.h /dev/null
 argmatch.h:1:/* definitions and prototypes for argmatch.c
 .EE
 .in
