@@ -555,7 +555,7 @@ static struct option const long_options[] =
   {"version", no_argument, nullptr, 'V'},
   {"with-filename", no_argument, nullptr, 'H'},
   {"word-regexp", no_argument, nullptr, 'w'},
-  {0, 0, 0, 0}
+  {nullptr, 0, nullptr, 0}
 };
 
 /* Define flags declared in grep.h. */
@@ -826,7 +826,7 @@ file_must_have_nulls (idx_t size, int fd, struct stat const *st)
 static void
 context_length_arg (char const *str, intmax_t *out)
 {
-  switch (xstrtoimax (str, 0, 10, out, ""))
+  switch (xstrtoimax (str, nullptr, 10, out, ""))
     {
     case LONGINT_OK:
     case LONGINT_OVERFLOW:
@@ -1528,7 +1528,7 @@ grep (int fd, struct stat const *st, bool *ineof)
     return 0;
 
   totalcc = 0;
-  lastout = 0;
+  lastout = nullptr;
   totalnl = 0;
   outleft = max_count;
   after_last_match = 0;
@@ -1624,7 +1624,7 @@ grep (int fd, struct stat const *st, bool *ineof)
 
       /* Detect whether leading context is adjacent to previous output.  */
       if (beg != lastout)
-        lastout = 0;
+        lastout = nullptr;
 
       /* Handle some details and read more data to scan.  */
       save = residue + lim - beg;
@@ -2510,7 +2510,8 @@ main (int argc, char **argv)
 
   last_recursive = 0;
 
-  pattern_table = hash_initialize (0, 0, hash_pattern, compare_patterns, 0);
+  pattern_table = hash_initialize (0, nullptr, hash_pattern, compare_patterns,
+                                   nullptr);
   if (!pattern_table)
     xalloc_die ();
 
@@ -2680,7 +2681,7 @@ main (int argc, char **argv)
         break;
 
       case 'm':
-        switch (xstrtoimax (optarg, 0, 10, &max_count, ""))
+        switch (xstrtoimax (optarg, nullptr, 10, &max_count, ""))
           {
           case LONGINT_OK:
           case LONGINT_OVERFLOW:
